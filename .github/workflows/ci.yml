@@ -33,6 +33,9 @@ jobs:
       - name: Check copyright headers
         run: task header:check
 
+      - name: Verify module zip excludes LFS files
+        run: task mod:check
+
       - name: Vet
         run: task vet
 
