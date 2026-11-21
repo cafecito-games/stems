@@ -11,7 +11,6 @@
 <p align="center">
   <a href="https://pkg.go.dev/github.com/cafecito-games/stems"><img src="https://pkg.go.dev/badge/github.com/cafecito-games/stems.svg" alt="Go reference"></a>
   <a href="https://github.com/cafecito-games/stems/actions/workflows/ci.yml"><img src="https://github.com/cafecito-games/stems/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
-  <a href="https://goreportcard.com/report/github.com/cafecito-games/stems"><img src="https://goreportcard.com/badge/github.com/cafecito-games/stems" alt="Go report card"></a>
   <a href="go.mod"><img src="https://img.shields.io/github/go-mod/go-version/cafecito-games/stems?logo=go&label=go" alt="Go version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
   <br>
