@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Workflows run through [Task](https://taskfile.dev/) (`Taskfile.yml`); `task` with no arguments lists them.
 
 ```sh
-task check           # generate, fmt:check, header:check, vet, lint, test, build — run before any PR
+task check           # generate, fmt:check, header:check, mod:check, vet, lint, test, build — run before any PR
 task generate        # go generate ./... — recompile all .sbl algorithms into Go
 task test            # go test -race -short ./...  (samples corpora over 200k words)
 task test:full       # go test -count=1 ./... — all 11,707,009 official vocabulary pairs
