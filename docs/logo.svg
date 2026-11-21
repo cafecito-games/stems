@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-labelledby="stems-logo-title">
+  <title id="stems-logo-title">Root, the stems mascot</title>
+  <!-- Copyright (c) 2026 Cafecito Games LLC - SPDX-License-Identifier: MIT -->
+  <path d="M6 112C18 78 38 64 64 64s46 14 58 48z" fill="#8A6A4E"/>
+  <path d="M64 34V21" fill="none" stroke="#2F7D4B" stroke-width="6" stroke-linecap="round"/>
+  <path d="M0 0q11-7 22 0q-11 7-22 0z" fill="#79C994" transform="translate(62 24) rotate(201)"/>
+  <path d="M0 0q11-7 22 0q-11 7-22 0z" fill="#8FD6A2" transform="translate(66 21) rotate(-21)"/>
+  <circle cx="64" cy="62" r="29" fill="#A2918A"/>
+  <path d="M49 57q4.5-5 9 0" fill="none" stroke="#453833" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M70 57q4.5-5 9 0" fill="none" stroke="#453833" stroke-width="3.2" stroke-linecap="round"/>
+  <ellipse cx="64" cy="80" rx="18" ry="14" fill="#E8BFB3"/>
+  <ellipse cx="64" cy="74" rx="6" ry="4.6" fill="#56392F"/>
+  <path d="M64 78v4" fill="none" stroke="#56392F" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M10 112C26 96 44 100 64 100s38-4 54 12z" fill="#79593F"/>
+  <g fill="#F2E6DB">
+    <ellipse cx="29" cy="90" rx="2.6" ry="5"/>
+    <ellipse cx="36" cy="88" rx="2.6" ry="5.4"/>
+    <ellipse cx="43" cy="90" rx="2.6" ry="5"/>
+    <ellipse cx="85" cy="90" rx="2.6" ry="5"/>
+    <ellipse cx="92" cy="88" rx="2.6" ry="5.4"/>
+    <ellipse cx="99" cy="90" rx="2.6" ry="5"/>
+  </g>
+  <ellipse cx="36" cy="97" rx="12" ry="8" fill="#8B7A72"/>
+  <ellipse cx="92" cy="97" rx="12" ry="8" fill="#8B7A72"/>
+</svg>
