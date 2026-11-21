@@ -1,0 +1,110 @@
+version: "3"
+
+vars:
+  GOHEADER_VERSION: v0.5.0
+  BIN_DIR: bin
+
+tasks:
+  default:
+    desc: List available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  generate:
+    desc: Compile all Snowball .sbl algorithms into Go packages and registry
+    cmds:
+      - go generate ./...
+
+  fmt:
+    desc: Format all Go source files with gofmt and goimports
+    cmds:
+      - golangci-lint fmt ./...
+
+  fmt:check:
+    desc: Verify Go source formatting without modifying files
+    cmds:
+      - golangci-lint fmt --diff ./...
+
+  header:check:
+    desc: Verify MIT copyright headers on all Go files using denis-tingaikin/go-header
+    cmds:
+      - find cmd internal pkg -name '*.go' -print0 | xargs -0 go run github.com/denis-tingaikin/go-header/cmd/go-header@{{.GOHEADER_VERSION}}
+
+  header:fix:
+    desc: Add or update MIT copyright headers on Go files via goheader auto-fix
+    cmds:
+      - golangci-lint run --enable-only=goheader --fix ./...
+
+  vet:
+    desc: Run go vet across all packages
+    cmds:
+      - go vet ./...
+
+  lint:
+    desc: Run golangci-lint (including goheader, staticcheck, revive, gosec, modernize)
+    cmds:
+      - golangci-lint run ./...
+
+  lint:fix:
+    desc: Run golangci-lint with auto-fixes enabled
+    cmds:
+      - golangci-lint run --fix ./...
+
+  test:
+    desc: Run race-enabled test suite (fast mode for >200k corpora)
+    cmds:
+      - go test -race -short ./...
+
+  test:full:
+    desc: Verify all 39 languages against all 11,707,009 official Snowball vocabulary pairs
+    cmds:
+      - go test -count=1 ./...
+
+  test:cover:
+    desc: Run race-enabled tests and write coverage.out
+    cmds:
+      - go test -race -short -coverprofile=coverage.out ./...
+
+  bench:
+    desc: Run comparative stemmer benchmarks across all 39 languages and API modes
+    cmds:
+      - go test -run='^$' -bench=. -benchmem ./pkg/stems
+
+  bench:all:
+    desc: Run per-package corpus benchmarks across all 39 language packages
+    cmds:
+      - go test -run='^$' -bench=BenchmarkStem -benchmem ./pkg/stems/...
+
+  build:
+    desc: Build stems and sblgen CLI binaries into bin/
+    cmds:
+      - mkdir -p {{.BIN_DIR}}
+      - go build -o {{.BIN_DIR}}/stems ./cmd/stems
+      - go build -o {{.BIN_DIR}}/sblgen ./cmd/sblgen
+
+  release:check:
+    desc: Validate .goreleaser.yaml configuration
+    cmds:
+      - goreleaser check
+
+  release:snapshot:
+    desc: Build local snapshot release archives with GoReleaser (no publish)
+    cmds:
+      - goreleaser release --snapshot --clean
+
+  clean:
+    desc: Remove build artifacts and coverage files
+    cmds:
+      - rm -rf {{.BIN_DIR}} dist coverage.out coverage.html
+
+  check:
+    desc: Run full local verification (generate, fmt:check, header:check, vet, lint, test, build)
+    cmds:
+      - task: generate
+      - task: fmt:check
+      - task: header:check
+      - task: vet
+      - task: lint
+      - task: test
+      - task: build

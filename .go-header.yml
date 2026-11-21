@@ -1,0 +1,7 @@
+values:
+  const:
+    COMPANY: Cafecito Games LLC
+
+template: |-
+  Copyright (c) {{ YEAR }} {{ COMPANY }}
+  SPDX-License-Identifier: MIT

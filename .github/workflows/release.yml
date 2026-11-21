@@ -1,0 +1,160 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: "Semantic version component to increment"
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+          # Manual releases always tag the latest default-branch commit, even
+          # if a different branch was selected in the Actions UI.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.repository.default_branch || github.ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Task
+        uses: go-task/setup-task@v2
+        with:
+          version: 3.x
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.11
+          install-only: true
+
+      - name: Run release verification
+        run: |
+          task check
+          git diff --exit-code
+
+      - name: Compute version and create release tag
+        id: release_tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          RELEASE_INCREMENT: ${{ inputs.increment }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          latest_tag="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' \
+            | grep -E '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' \
+            | sort -V \
+            | tail -n1 || true)"
+
+          if [[ -z "${latest_tag}" ]]; then
+            latest_tag="v0.0.0"
+          fi
+
+          current="${latest_tag#v}"
+          IFS='.' read -r major minor patch <<< "${current}"
+          case "${RELEASE_INCREMENT}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+            *)
+              echo "::error::Unknown release increment ${RELEASE_INCREMENT}"
+              exit 1
+              ;;
+          esac
+
+          tag="v${major}.${minor}.${patch}"
+
+          module_path="$(go list -m)"
+          if (( major >= 2 )) && [[ "${module_path}" != */v${major} ]]; then
+            echo "::error::Releasing ${tag} requires go.mod module path to end with /v${major} (currently ${module_path})"
+            exit 1
+          fi
+
+          head_sha="$(git rev-parse HEAD)"
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
+            git fetch --force origin "refs/tags/${tag}:refs/tags/${tag}"
+            tag_sha="$(git rev-list -n 1 "${tag}")"
+            if [[ "${tag_sha}" != "${head_sha}" ]]; then
+              echo "::error::${tag} already points to ${tag_sha}, not current default branch HEAD ${head_sha}"
+              exit 1
+            fi
+            echo "Reusing ${tag} at ${head_sha} for a release retry"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag --annotate "${tag}" --message "stems ${tag}"
+            git push origin "refs/tags/${tag}"
+            echo "Created ${tag} at ${head_sha}"
+          fi
+
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+
+          {
+            echo "### Releasing ${tag}"
+            echo "Previous tag: \`${latest_tag}\`"
+            echo "Increment: \`${RELEASE_INCREMENT}\`"
+            echo "Commit: \`${head_sha}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish module version to Go proxy
+        if: ${{ github.event.repository.private == false }}
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && steps.release_tag.outputs.tag || github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          module="$(go list -m)"
+
+          for attempt in 1 2 3 4 5; do
+            echo "Publishing ${module}@${RELEASE_TAG} to the Go proxy, attempt ${attempt}/5"
+            if GOPROXY=https://proxy.golang.org go list -m "${module}@${RELEASE_TAG}"; then
+              exit 0
+            fi
+            sleep 15
+          done
+
+          echo "::warning::Timed out waiting for proxy.golang.org to index ${module}@${RELEASE_TAG}"

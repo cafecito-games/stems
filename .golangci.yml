@@ -1,0 +1,62 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - copyloopvar
+    - errname
+    - errorlint
+    - gocritic
+    - goheader
+    - gosec
+    - intrange
+    - misspell
+    - modernize
+    - nilerr
+    - nilnil
+    - prealloc
+    - revive
+    - unconvert
+    - unparam
+  settings:
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+    goheader:
+      values:
+        const:
+          COMPANY: Cafecito Games LLC
+      template: |-
+        Copyright (c) {{ YEAR }} {{ COMPANY }}
+        SPDX-License-Identifier: MIT
+    revive:
+      rules:
+        - name: exported
+          disabled: false
+        - name: var-naming
+          disabled: false
+        - name: indent-error-flow
+          disabled: false
+    gosec:
+      excludes:
+        - G304
+        - G703
+    misspell:
+      ignore-rules:
+        - portugues
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - gosec
+          - errcheck
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/cafecito-games/stems
